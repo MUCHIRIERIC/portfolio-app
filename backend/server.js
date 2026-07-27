@@ -131,8 +131,25 @@ app.post('/api/contact', async (req, res) => {
 // 4. ADMIN API ROUTES (Protected)
 // ==========================================
 
+// --- Admin Login Route ---
+// This must remain above the `verifyAdmin` middleware so it is not blocked by header requirements.
+app.post('/api/admin/login', (req, res) => {
+  const { email, password } = req.body;
+
+  // Verify against the hardcoded credentials
+  if (
+    email && email.toLowerCase() === 'muchirimunene031@gmail.com' &&
+    password === 'munene398'
+  ) {
+    return res.status(200).json({ message: 'Login successful' });
+  }
+
+  return res.status(401).json({ error: 'Invalid email or password' });
+});
+
+
 // --- Admin Password Middleware ---
-// This intercepts all requests to /api/admin/* and requires a specific email and password
+// This intercepts all subsequent requests to /api/admin/* and requires a specific email and password in the headers
 const verifyAdmin = (req, res, next) => {
   const providedEmail = req.headers['x-admin-email'];
   const providedPassword = req.headers['x-admin-password'];
@@ -154,7 +171,7 @@ const verifyAdmin = (req, res, next) => {
   }
 };
 
-// Apply the protection to ALL admin routes automatically
+// Apply the protection to ALL admin routes defined below this line automatically
 app.use('/api/admin', verifyAdmin);
 
 app.put('/api/admin/profile', async (req, res) => {
