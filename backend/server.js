@@ -132,19 +132,25 @@ app.post('/api/contact', async (req, res) => {
 // ==========================================
 
 // --- Admin Password Middleware ---
-// This intercepts all requests to /api/admin/* and requires a password header
+// This intercepts all requests to /api/admin/* and requires a specific email and password
 const verifyAdmin = (req, res, next) => {
+  const providedEmail = req.headers['x-admin-email'];
   const providedPassword = req.headers['x-admin-password'];
+  
   const actualPassword = process.env.ADMIN_PASSWORD;
 
   if (!actualPassword) {
     console.warn('⚠️ WARNING: ADMIN_PASSWORD is not set in your .env file!');
   }
 
-  if (providedPassword === actualPassword) {
+  // Check if the provided credentials match your specific email and password
+  if (
+    providedEmail && providedEmail.toLowerCase() === 'muchirimunene031@gmail.com' && 
+    providedPassword === 'munene398'
+  ) {
     next(); // Passwords match, proceed to the route
   } else {
-    res.status(401).json({ error: 'Unauthorized: Invalid or Missing Admin Password' });
+    res.status(401).json({ error: 'Unauthorized: Invalid or Missing Admin Credentials' });
   }
 };
 
