@@ -85,7 +85,8 @@ function PortfolioView({ data }: any) {
 
 function HeroSection({ profile }: any) {
   const [mediaIndex, setMediaIndex] = useState(0);
-  const [showProfession, setShowProfession] = useState(false);
+  const [isRevealed, setIsRevealed] = useState(false);
+  const [scrambled, setScrambled] = useState({ name: '', profession: '' });
   
   // 8-second Alternating Media Effect
   useEffect(() => {
@@ -96,14 +97,30 @@ function HeroSection({ profile }: any) {
     return () => clearInterval(interval);
   }, [profile.heroMedia]);
 
-  // Bouncing Star Reveal Effect
+  // Random Code Running Reveal Effect
   useEffect(() => {
-    setShowProfession(false);
+    if (!profile.name) return; // Wait until data is loaded
+
+    setIsRevealed(false);
+    const chars = '0123456789ABCDEF@#$%^&*<>/?{}[]';
+    
+    const scrambleInterval = setInterval(() => {
+      setScrambled({
+        name: Array.from({ length: profile.name.length || 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join(''),
+        profession: Array.from({ length: profile.profession?.length || 15 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+      });
+    }, 50); // Speed of the running code
+
     const revealTimer = setTimeout(() => {
-      setShowProfession(true);
-    }, 2000);
-    return () => clearTimeout(revealTimer);
-  }, [profile.name]);
+      clearInterval(scrambleInterval);
+      setIsRevealed(true);
+    }, 2000); // Reveals after 2 seconds
+
+    return () => {
+      clearInterval(scrambleInterval);
+      clearTimeout(revealTimer);
+    };
+  }, [profile.name, profile.profession]);
 
   const currentMedia = profile.heroMedia?.[mediaIndex];
 
@@ -119,15 +136,13 @@ function HeroSection({ profile }: any) {
       </div>
 
       <div className="z-10 text-center text-white p-4">
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 min-h-[80px]">
-          {profile.name}
+        <h1 className={`text-5xl md:text-7xl font-extrabold tracking-tight mb-4 min-h-[80px] ${!isRevealed ? 'font-mono text-green-400' : ''}`}>
+          {isRevealed ? profile.name : scrambled.name}
         </h1>
         <div className="h-[40px]">
-          {!showProfession ? (
-            <div className="text-4xl animate-bounce text-yellow-400">⭐</div>
-          ) : (
-            <p className="text-2xl md:text-3xl font-light text-blue-300 animate-pulse">{profile.profession}</p>
-          )}
+           <p className={`text-2xl md:text-3xl font-light ${!isRevealed ? 'font-mono text-green-400' : 'text-blue-300 animate-pulse'}`}>
+             {isRevealed ? profile.profession : scrambled.profession}
+           </p>
         </div>
       </div>
     </section>
@@ -288,14 +303,41 @@ function ContactSection() {
 
 function AdminPanel({ data, refreshData }: any) {
   const [activeTab, setActiveTab] = useState('Profile');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loginError, setLoginError] = useState('');
+
+  const handleLogin = async (e: any) => {
+    e.preventDefault();
+    setLoginError('');
+    
+    try {
+      const response = await fetch(`${API_URL}/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      
+      if (response.ok) {
+        setIsAuthenticated(true);
+      } else {
+        const errData = await response.json();
+        setLoginError(errData.error || 'Invalid credentials');
+      }
+    } catch (error) {
+      setLoginError('Server error. Please try again.');
+    }
+  };
 
   const handleDelete = async (endpoint: any, id: any) => {
     if(window.confirm('Are you sure you want to delete this?')) {
       await fetch(`${API_URL}/admin/${endpoint}/${id}`, { 
         method: 'DELETE',
-        headers: { 'x-admin-password': password }
+        headers: { 
+          'x-admin-email': email,
+          'x-admin-password': password 
+        }
       }); 
       refreshData();
     }
@@ -305,19 +347,31 @@ function AdminPanel({ data, refreshData }: any) {
     return (
       <div className="max-w-md mx-auto mt-20 bg-white p-8 rounded-xl shadow-md border text-center">
         <h2 className="text-2xl font-bold mb-4">Admin Login</h2>
-        <input 
-          type="password" 
-          placeholder="Enter Admin Password" 
-          value={password} 
-          onChange={e => setPassword(e.target.value)} 
-          className="w-full p-3 border rounded-lg mb-4 outline-none focus:ring-2 focus:ring-blue-500" 
-        />
-        <button 
-          onClick={() => setIsAuthenticated(true)} 
-          className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors"
-        >
-          Enter Admin Panel
-        </button>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <input 
+            type="email" 
+            required
+            placeholder="Admin Email" 
+            value={email} 
+            onChange={e => setEmail(e.target.value)} 
+            className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
+          />
+          <input 
+            type="password" 
+            required
+            placeholder="Admin Password" 
+            value={password} 
+            onChange={e => setPassword(e.target.value)} 
+            className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
+          />
+          {loginError && <p className="text-red-500 text-sm font-medium">{loginError}</p>}
+          <button 
+            type="submit"
+            className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors"
+          >
+            Enter Admin Panel
+          </button>
+        </form>
       </div>
     );
   }
@@ -341,18 +395,18 @@ function AdminPanel({ data, refreshData }: any) {
       <div className="flex-1 bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-gray-100">
         <h2 className="text-3xl font-bold mb-8">Manage {activeTab}</h2>
 
-        {activeTab === 'Profile' && <AdminProfile profile={data.profile} refreshData={refreshData} password={password} />}
-        {activeTab === 'Skills' && <AdminGenericList items={data.skills} endpoint="skills" fields={['title', 'imageUrl', 'description', 'proficiency']} refreshData={refreshData} handleDelete={handleDelete} password={password} />}
-        {activeTab === 'Projects' && <AdminGenericList items={data.projects} endpoint="projects" fields={['title', 'imageUrl', 'description', 'projectUrl']} refreshData={refreshData} handleDelete={handleDelete} password={password} />}
-        {activeTab === 'Education' && <AdminGenericList items={data.education} endpoint="education" fields={['institution', 'degree', 'startDate', 'endDate', 'description']} refreshData={refreshData} handleDelete={handleDelete} password={password} />}
-        {activeTab === 'Messages' && <AdminMessages password={password} />}
+        {activeTab === 'Profile' && <AdminProfile profile={data.profile} refreshData={refreshData} email={email} password={password} />}
+        {activeTab === 'Skills' && <AdminGenericList items={data.skills} endpoint="skills" fields={['title', 'imageUrl', 'description', 'proficiency']} refreshData={refreshData} handleDelete={handleDelete} email={email} password={password} />}
+        {activeTab === 'Projects' && <AdminGenericList items={data.projects} endpoint="projects" fields={['title', 'imageUrl', 'description', 'projectUrl']} refreshData={refreshData} handleDelete={handleDelete} email={email} password={password} />}
+        {activeTab === 'Education' && <AdminGenericList items={data.education} endpoint="education" fields={['institution', 'degree', 'startDate', 'endDate', 'description']} refreshData={refreshData} handleDelete={handleDelete} email={email} password={password} />}
+        {activeTab === 'Messages' && <AdminMessages email={email} password={password} />}
       </div>
     </div>
   );
 }
 
 // Admin Form for Profile (Landing Page)
-function AdminProfile({ profile, refreshData, password }: any) {
+function AdminProfile({ profile, refreshData, email, password }: any) {
   const [formData, setFormData] = useState({ name: profile.name, profession: profile.profession, heroMedia: profile.heroMedia || [] });
   const [newMedia, setNewMedia] = useState({ mediaType: 'image', url: '' });
 
@@ -360,7 +414,11 @@ function AdminProfile({ profile, refreshData, password }: any) {
     e.preventDefault();
     const res = await fetch(`${API_URL}/admin/profile`, { 
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-admin-email': email,
+        'x-admin-password': password 
+      },
       body: JSON.stringify(formData)
     });
     
@@ -368,7 +426,7 @@ function AdminProfile({ profile, refreshData, password }: any) {
       alert('Profile updated!');
       refreshData();
     } else {
-      alert('Failed to update profile. Check password.');
+      alert('Failed to update profile. Check credentials.');
     }
   };
 
@@ -436,7 +494,7 @@ function AdminProfile({ profile, refreshData, password }: any) {
 }
 
 // Reusable Admin List & Add/Edit Form for arrays (Skills, Projects, Education)
-function AdminGenericList({ items, endpoint, fields, refreshData, handleDelete, password }: any) {
+function AdminGenericList({ items, endpoint, fields, refreshData, handleDelete, email, password }: any) {
   const initialFormState = fields.reduce((acc: any, field: any) => ({ ...acc, [field]: '' }), {});
   const [formData, setFormData] = useState(initialFormState);
   const [editId, setEditId] = useState(null);
@@ -448,7 +506,11 @@ function AdminGenericList({ items, endpoint, fields, refreshData, handleDelete, 
 
     const res = await fetch(url, { 
       method: method,
-      headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-admin-email': email,
+        'x-admin-password': password 
+      },
       body: JSON.stringify(formData)
     });
 
@@ -457,7 +519,7 @@ function AdminGenericList({ items, endpoint, fields, refreshData, handleDelete, 
       setEditId(null);
       refreshData();
     } else {
-      alert(`Failed to ${editId ? 'update' : 'add'} item. Check password.`);
+      alert(`Failed to ${editId ? 'update' : 'add'} item. Check credentials.`);
     }
   };
 
@@ -511,19 +573,22 @@ function AdminGenericList({ items, endpoint, fields, refreshData, handleDelete, 
 }
 
 // Admin Messages Viewer
-function AdminMessages({ password }: any) {
+function AdminMessages({ email, password }: any) {
   const [messages, setMessages] = useState<any[]>([]);
 
   useEffect(() => {
     fetch(`${API_URL}/admin/messages`, {
-      headers: { 'x-admin-password': password }
+      headers: { 
+        'x-admin-email': email,
+        'x-admin-password': password 
+      }
     }) 
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setMessages(data);
       })
       .catch(err => console.error("Error fetching messages:", err));
-  }, [password]);
+  }, [email, password]);
 
   return (
     <div className="space-y-4">
