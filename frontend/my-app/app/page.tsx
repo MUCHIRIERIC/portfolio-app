@@ -44,6 +44,7 @@ export default function PortfolioApp() {
   });
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true); // Added for theme switching
 
   const fetchData = async () => {
     try {
@@ -76,18 +77,29 @@ export default function PortfolioApp() {
   if (loading) return <div className="flex items-center justify-center h-screen bg-[#0a0f1d] text-white text-2xl font-bold">Loading Portfolio...</div>;
 
   return (
-    <div className="min-h-screen font-sans bg-[#0a0f1d] text-gray-100 overflow-x-hidden pt-24 md:pt-20">
+    <div className={`min-h-screen font-sans overflow-x-hidden pt-24 md:pt-20 ${isDarkMode ? 'bg-[#0a0f1d] text-gray-100' : 'bg-slate-50 text-slate-900'}`}>
       
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-[#0a0f1d]/90 backdrop-blur-md shadow-lg z-50 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-800">
+      <nav className={`fixed top-0 w-full backdrop-blur-md shadow-lg z-50 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 border-b ${isDarkMode ? 'bg-[#0a0f1d]/90 border-slate-800' : 'bg-white/90 border-slate-200'}`}>
         <div className="flex justify-between w-full md:w-auto items-center">
           <div className="text-2xl font-extrabold bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent tracking-tight">
             {data.profile.name || 'Portfolio'}
           </div>
           
-          <div className="flex space-x-3 md:hidden">
-            <button onClick={() => setIsAdmin(false)} className={`text-sm font-bold ${!isAdmin ? 'text-blue-400 border-b-2 border-blue-400' : 'text-slate-400'}`}>Portfolio</button>
-            <button onClick={() => setIsAdmin(true)} className={`text-sm font-bold ${isAdmin ? 'text-blue-400 border-b-2 border-blue-400' : 'text-slate-400'}`}>Admin</button>
+          <div className="flex space-x-3 md:hidden items-center">
+            <button onClick={() => setIsAdmin(false)} className={`p-2 rounded-lg transition-all ${!isAdmin ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-slate-400'}`} title="Portfolio">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+            </button>
+            <button onClick={() => setIsAdmin(true)} className={`p-2 rounded-lg transition-all ${isAdmin ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-slate-400'}`} title="Admin Panel">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+            </button>
+            
+            {/* Mobile Theme Diamond Switcher */}
+            <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-8 h-8 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 ml-1" title="Switch Theme">
+              <svg viewBox="0 0 24 24" className="w-6 h-6 text-cyan-300 drop-shadow-[0_0_10px_rgba(103,232,249,1)]" fill="currentColor">
+                <path d="M12 2L2 9l10 13 10-13L12 2zm0 2.83L18.34 9H5.66L12 4.83z"/>
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -102,9 +114,20 @@ export default function PortfolioApp() {
           </div>
         )}
 
-        <div className="hidden md:flex space-x-3 flex-shrink-0">
-          <button onClick={() => setIsAdmin(false)} className={`px-4 py-2 rounded-lg font-semibold transition-all ${!isAdmin ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-slate-400 hover:bg-slate-800'}`}>Portfolio</button>
-          <button onClick={() => setIsAdmin(true)} className={`px-4 py-2 rounded-lg font-semibold transition-all ${isAdmin ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-slate-400 hover:bg-slate-800'}`}>Admin Panel</button>
+        <div className="hidden md:flex items-center space-x-3 flex-shrink-0">
+          <button onClick={() => setIsAdmin(false)} className={`p-2.5 rounded-lg font-semibold transition-all flex items-center justify-center ${!isAdmin ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-slate-400 hover:bg-slate-800'}`} title="Portfolio">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+          </button>
+          <button onClick={() => setIsAdmin(true)} className={`p-2.5 rounded-lg font-semibold transition-all flex items-center justify-center ${isAdmin ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-slate-400 hover:bg-slate-800'}`} title="Admin Panel">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+          </button>
+          
+          {/* Desktop Theme Diamond Switcher */}
+          <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-8 h-8 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 ml-2 cursor-pointer" title="Switch Theme">
+            <svg viewBox="0 0 24 24" className="w-7 h-7 text-cyan-300 drop-shadow-[0_0_12px_rgba(103,232,249,1)]" fill="currentColor">
+              <path d="M12 2L2 9l10 13 10-13L12 2zm0 2.83L18.34 9H5.66L12 4.83z"/>
+            </svg>
+          </button>
         </div>
       </nav>
 
@@ -167,10 +190,10 @@ function HeroSection({ profile }: any) {
 
       <div className="z-10 flex flex-col md:flex-row items-center justify-center gap-12 max-w-6xl mx-auto w-full">
         
-        {/* Profile Picture Container on the Left */}
+        {/* Profile Picture Container on the Left (Updated to fully circular) */}
         <div className="flex-shrink-0 relative group">
-          <div className="absolute -inset-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl blur-lg opacity-40 group-hover:opacity-75 transition duration-500"></div>
-          <div className="relative w-48 h-48 md:w-60 md:h-60 rounded-2xl overflow-hidden border-2 border-slate-700 bg-slate-900 shadow-2xl">
+          <div className="absolute -inset-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full blur-lg opacity-40 group-hover:opacity-75 transition duration-500"></div>
+          <div className="relative w-48 h-48 md:w-60 md:h-60 rounded-full overflow-hidden border-2 border-slate-700 bg-slate-900 shadow-2xl">
             <img 
               src={profile.profilePictureUrl || 'https://placehold.co/400x400?text=Profile'} 
               alt="Profile" 
