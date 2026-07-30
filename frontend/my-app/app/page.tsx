@@ -44,7 +44,7 @@ export default function PortfolioApp() {
   });
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true); // Added for theme switching
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   const fetchData = async () => {
     try {
@@ -94,8 +94,8 @@ export default function PortfolioApp() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
             </button>
             
-            {/* Mobile Theme Diamond Switcher */}
-            <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-8 h-8 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 ml-1" title="Switch Theme">
+            {/* Mobile Theme Switcher */}
+            <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-8 h-8 flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity duration-300 ml-1" title="Switch Theme">
               <svg viewBox="0 0 24 24" className="w-6 h-6 text-cyan-300 drop-shadow-[0_0_10px_rgba(103,232,249,1)]" fill="currentColor">
                 <path d="M12 2L2 9l10 13 10-13L12 2zm0 2.83L18.34 9H5.66L12 4.83z"/>
               </svg>
@@ -122,8 +122,8 @@ export default function PortfolioApp() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
           </button>
           
-          {/* Desktop Theme Diamond Switcher */}
-          <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-8 h-8 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 ml-2 cursor-pointer" title="Switch Theme">
+          {/* Desktop Theme Switcher */}
+          <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-8 h-8 flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity duration-300 ml-2 cursor-pointer" title="Switch Theme">
             <svg viewBox="0 0 24 24" className="w-7 h-7 text-cyan-300 drop-shadow-[0_0_12px_rgba(103,232,249,1)]" fill="currentColor">
               <path d="M12 2L2 9l10 13 10-13L12 2zm0 2.83L18.34 9H5.66L12 4.83z"/>
             </svg>
@@ -175,7 +175,7 @@ function HeroSection({ profile }: any) {
   const currentMedia = profile.heroMedia?.[mediaIndex];
   const hasImageBackground = profile.heroMedia && profile.heroMedia.length > 0;
 
-return (
+  return (
     <section className="relative min-h-[90vh] flex items-center justify-center bg-[#0a0f1d] overflow-hidden px-6 py-20">
       {/* Dynamic Background Media */}
       {hasImageBackground && (
@@ -183,14 +183,19 @@ return (
           {currentMedia?.mediaType === 'video' ? (
             <video src={currentMedia.url} autoPlay loop muted className="w-full h-full object-cover" />
           ) : (
-            <img src={currentMedia?.url} alt="Hero Background" className="w-full h-full object-cover transition-opacity duration-1000" />
+            <img 
+              src={currentMedia?.url} 
+              alt="Hero Background" 
+              className="w-full h-full object-cover transition-opacity duration-1000" 
+              referrerPolicy="no-referrer"
+            />
           )}
         </div>
       )}
 
       <div className="z-10 flex flex-col md:flex-row items-center justify-center gap-12 max-w-6xl mx-auto w-full">
         
-        {/* Profile Picture Container on the Left (Updated to fully circular) */}
+        {/* Profile Picture Container */}
         <div className="flex-shrink-0 relative group">
           <div className="absolute -inset-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full blur-lg opacity-40 group-hover:opacity-75 transition duration-500"></div>
           <div className="relative w-48 h-48 md:w-60 md:h-60 rounded-full overflow-hidden border-2 border-slate-700 bg-slate-900 shadow-2xl">
@@ -211,19 +216,19 @@ return (
             </span>
           )}
 
-          {/* Name with Fountain / Gradient Fill */}
+          {/* Name */}
           <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-4 bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent drop-shadow-sm">
             {profile.name || 'Your Name'}
           </h1>
 
-          {/* Profession in Bold, Centered relative to block or nicely aligned */}
+          {/* Profession */}
           <div className="mb-8">
              <p className="text-xl md:text-2xl font-bold text-slate-300 tracking-wide">
                {profile.profession || 'Professional Title'}
              </p>
           </div>
 
-          {/* CV Download & Action Buttons */}
+          {/* Action Buttons */}
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
             <a 
               href={profile.cvUrl || '#'} 
@@ -245,6 +250,7 @@ return (
       </div>
     </section>
   );
+}
 
 function SkillsSection({ skills }: any) {
   const [activeSkill, setActiveSkill] = useState(null);
@@ -266,7 +272,7 @@ function SkillsSection({ skills }: any) {
               className="cursor-pointer group relative bg-[#0f172a] rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl hover:border-blue-500/40 transition-all duration-300 border border-slate-800 p-6 flex flex-col items-center text-center"
             >
               <div className="w-16 h-16 md:w-20 md:h-20 mb-4 p-2 bg-slate-900/80 rounded-xl border border-slate-800 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <img src={skill.imageUrl} alt={skill.title} className="w-full h-full object-contain" />
+                <img src={skill.imageUrl} alt={skill.title} className="w-full h-full object-contain" referrerPolicy="no-referrer" />
               </div>
               <h3 className="text-lg font-bold text-white mb-2">{skill.title}</h3>
               
@@ -313,7 +319,7 @@ function ProjectsSection({ projects }: any) {
               className="flex flex-col cursor-pointer bg-[#0f172a] rounded-2xl shadow-xl overflow-hidden hover:-translate-y-1 hover:border-blue-500/40 transition-all duration-300 border border-slate-800"
             >
               <div className="h-32 md:h-40 overflow-hidden relative">
-                <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
               </div>
               <div className="p-5 flex-1 flex flex-col justify-between">
                 <div>
@@ -641,8 +647,8 @@ function AdminProfile({ profile, refreshData, email, password }: any) {
 
       <div className="grid md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-bold text-slate-300 mb-2">Profile Picture URL</label>
-          <input type="text" placeholder="https://image-link.com/photo.jpg" className="w-full p-3.5 bg-slate-900 border border-slate-800 rounded-xl text-white font-medium" value={formData.profilePictureUrl} onChange={e => setFormData({...formData, profilePictureUrl: e.target.value})} />
+          <label className="block text-sm font-bold text-slate-300 mb-2">Profile Picture URL (Facebook / External Link Supported)</label>
+          <input type="text" placeholder="https://scontent... or Facebook image address" className="w-full p-3.5 bg-slate-900 border border-slate-800 rounded-xl text-white font-medium" value={formData.profilePictureUrl} onChange={e => setFormData({...formData, profilePictureUrl: e.target.value})} />
         </div>
         <div>
           <label className="block text-sm font-bold text-slate-300 mb-2">CV / Resume Document URL</label>
