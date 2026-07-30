@@ -15,6 +15,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Trust Render's reverse proxy so req.protocol correctly returns 'https'
+app.set('trust proxy', 1);
+
 // Ensure uploads directory exists and serve statically
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
@@ -128,7 +131,7 @@ const verifyAdmin = (req, res, next) => {
 };
 
 // ==========================================
-// PUBLIC ROUTES
+// PUBLIC API ROUTES
 // ==========================================
 
 // GET: Complete Portfolio Data
@@ -172,7 +175,7 @@ app.post('/api/contact', async (req, res) => {
 });
 
 // ==========================================
-// ADMIN ROUTES
+// ADMIN API ROUTES
 // ==========================================
 
 // POST: Admin Login Check
@@ -187,7 +190,7 @@ app.post('/api/admin/login', (req, res) => {
   return res.status(401).json({ error: 'Invalid admin credentials' });
 });
 
-// PUT: Update Profile (Supports both File Uploads and Direct Image URL Links)
+// PUT: Update Profile
 app.put('/api/admin/profile', verifyAdmin, upload.single('profilePictureFile'), async (req, res) => {
   try {
     let profile = await Profile.findOne();
@@ -201,7 +204,7 @@ app.put('/api/admin/profile', verifyAdmin, upload.single('profilePictureFile'), 
     if (profession) profile.profession = profession;
     if (cvUrl !== undefined) profile.cvUrl = cvUrl;
 
-    // Handle Profile Picture: Priority given to uploaded file binary
+    // Handle Profile Picture
     if (req.file) {
       const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
       profile.profilePictureUrl = fileUrl;
@@ -209,7 +212,7 @@ app.put('/api/admin/profile', verifyAdmin, upload.single('profilePictureFile'), 
       profile.profilePictureUrl = profilePictureUrl;
     }
 
-    // Safely parse heroMedia JSON array sent inside FormData
+    // Safely parse heroMedia JSON
     if (req.body.heroMedia) {
       try {
         profile.heroMedia = typeof req.body.heroMedia === 'string' 
@@ -238,7 +241,7 @@ app.get('/api/admin/messages', verifyAdmin, async (req, res) => {
   }
 });
 
-// POST: Generic Add Endpoint (skills, projects, education, certifications)
+// POST: Generic Add Endpoint
 app.post('/api/admin/:endpoint', verifyAdmin, async (req, res) => {
   const { endpoint } = req.params;
   const TargetModel = modelMap[endpoint];
@@ -287,6 +290,18 @@ app.delete('/api/admin/:endpoint/:id', verifyAdmin, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: `Failed to delete item from ${endpoint}` });
   }
+});
+
+// ==========================================
+// FRONTEND STATIC SERVING (NEW)
+// ==========================================
+// Serve the static files from the React frontend build directory
+// NOTE: Change 'dist' to 'build' if your frontend build outputs to a 'build' folder (like standard Create React App)
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Catch-all route to serve the React index.html for any request that doesn't match an API route
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 // ==========================================
