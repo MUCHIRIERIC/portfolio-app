@@ -175,7 +175,7 @@ function HeroSection({ profile }: any) {
   const currentMedia = profile.heroMedia?.[mediaIndex];
   const hasImageBackground = profile.heroMedia && profile.heroMedia.length > 0;
 
-  return (
+return (
     <section className="relative min-h-[90vh] flex items-center justify-center bg-[#0a0f1d] overflow-hidden px-6 py-20">
       {/* Dynamic Background Media */}
       {hasImageBackground && (
@@ -198,6 +198,7 @@ function HeroSection({ profile }: any) {
               src={profile.profilePictureUrl || 'https://placehold.co/400x400?text=Profile'} 
               alt="Profile" 
               className="w-full h-full object-cover" 
+              referrerPolicy="no-referrer"
             />
           </div>
         </div>
@@ -244,7 +245,6 @@ function HeroSection({ profile }: any) {
       </div>
     </section>
   );
-}
 
 function SkillsSection({ skills }: any) {
   const [activeSkill, setActiveSkill] = useState(null);
