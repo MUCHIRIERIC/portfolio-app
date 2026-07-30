@@ -1,8 +1,8 @@
 // server.js
 const dns = require('dns');
-dns.setServers(['8.8.8.8', '8.8.4.4']); // <-- ADD THIS AT LINE 1
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 
-require('dotenv').config(); // Loads environment variables from .env if present
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -13,10 +13,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ==========================================
-// REQUEST LOGGER MIDDLEWARE
-// ==========================================
-// Logs every incoming HTTP request to your terminal
+// Request Logger Middleware
 app.use((req, res, next) => {
   console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
   next();
@@ -39,12 +36,14 @@ mongoose.connect(MONGO_URI)
   });
 
 // ==========================================
-// 2. MONGOOSE SCHEMAS & MODELS
+// 2. MONGOOSE SCHEMAS & MODELS (FIXED HERE)
 // ==========================================
 
 const profileSchema = new mongoose.Schema({
   name: { type: String, required: true, default: 'John Doe' },
   profession: { type: String, required: true, default: 'Full Stack Developer' },
+  profilePictureUrl: { type: String, default: 'https://placehold.co/400x400?text=Profile' },
+  cvUrl: { type: String, default: '#' },
   heroMedia: [{ 
     mediaType: { type: String, enum: ['image', 'video'], required: true },
     url: { type: String, required: true } 
@@ -131,12 +130,9 @@ app.post('/api/contact', async (req, res) => {
 // 4. ADMIN API ROUTES (Protected)
 // ==========================================
 
-// --- Admin Login Route ---
-// This must remain above the `verifyAdmin` middleware so it is not blocked by header requirements.
 app.post('/api/admin/login', (req, res) => {
   const { email, password } = req.body;
 
-  // Verify against the hardcoded credentials
   if (
     email && email.toLowerCase() === 'muchirimunene031@gmail.com' &&
     password === 'munene398'
@@ -147,9 +143,6 @@ app.post('/api/admin/login', (req, res) => {
   return res.status(401).json({ error: 'Invalid email or password' });
 });
 
-
-// --- Admin Password Middleware ---
-// This intercepts all subsequent requests to /api/admin/* and requires a specific email and password in the headers
 const verifyAdmin = (req, res, next) => {
   const providedEmail = req.headers['x-admin-email'];
   const providedPassword = req.headers['x-admin-password'];
@@ -160,18 +153,16 @@ const verifyAdmin = (req, res, next) => {
     console.warn('⚠️ WARNING: ADMIN_PASSWORD is not set in your .env file!');
   }
 
-  // Check if the provided credentials match your specific email and password
   if (
     providedEmail && providedEmail.toLowerCase() === 'muchirimunene031@gmail.com' && 
     providedPassword === 'munene398'
   ) {
-    next(); // Passwords match, proceed to the route
+    next();
   } else {
     res.status(401).json({ error: 'Unauthorized: Invalid or Missing Admin Credentials' });
   }
 };
 
-// Apply the protection to ALL admin routes defined below this line automatically
 app.use('/api/admin', verifyAdmin);
 
 app.put('/api/admin/profile', async (req, res) => {
@@ -247,7 +238,6 @@ app.delete('/api/admin/certifications/:id', async (req, res) => {
   }
 });
 
-// --- Projects ---
 app.post('/api/admin/projects', async (req, res) => {
   try {
     const project = new Project(req.body);
@@ -259,7 +249,6 @@ app.post('/api/admin/projects', async (req, res) => {
   }
 });
 
-// NEW: Edit (Update) an existing project
 app.put('/api/admin/projects/:id', async (req, res) => {
   try {
     const project = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
