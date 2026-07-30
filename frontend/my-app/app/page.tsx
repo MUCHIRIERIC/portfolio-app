@@ -591,6 +591,9 @@ function AdminPanel({ data, refreshData }: any) {
   );
 }
 
+// ==========================================
+// UPDATED ADMIN PROFILE COMPONENT
+// ==========================================
 function AdminProfile({ profile, refreshData, email, password }: any) {
   const [formData, setFormData] = useState({ 
     name: profile.name || '', 
@@ -599,25 +602,56 @@ function AdminProfile({ profile, refreshData, email, password }: any) {
     profilePictureUrl: profile.profilePictureUrl || '',
     cvUrl: profile.cvUrl || ''
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [newMedia, setNewMedia] = useState({ mediaType: 'image', url: '' });
+
+  // Sync state when profile data re-fetches
+  useEffect(() => {
+    setFormData({
+      name: profile.name || '',
+      profession: profile.profession || '',
+      heroMedia: profile.heroMedia || [],
+      profilePictureUrl: profile.profilePictureUrl || '',
+      cvUrl: profile.cvUrl || ''
+    });
+  }, [profile]);
 
   const handleUpdate = async (e: any) => {
     e.preventDefault();
-    const res = await fetch(`${API_URL}/admin/profile`, { 
-      method: 'PUT',
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-admin-email': email,
-        'x-admin-password': password 
-      },
-      body: JSON.stringify(formData)
-    });
     
-    if (res.ok) {
-      alert('Profile updated!');
-      refreshData();
-    } else {
-      alert('Failed to update profile. Check credentials.');
+    // Construct FormData so Multer receives file uploads as well as form fields
+    const data = new FormData();
+    data.append('name', formData.name);
+    data.append('profession', formData.profession);
+    data.append('cvUrl', formData.cvUrl);
+    data.append('profilePictureUrl', formData.profilePictureUrl);
+    data.append('heroMedia', JSON.stringify(formData.heroMedia));
+    
+    // Append file if selected by user
+    if (selectedFile) {
+      data.append('profilePictureFile', selectedFile);
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/admin/profile`, { 
+        method: 'PUT',
+        headers: { 
+          'x-admin-email': email,
+          'x-admin-password': password 
+        },
+        body: data
+      });
+      
+      if (res.ok) {
+        alert('Profile updated successfully!');
+        setSelectedFile(null);
+        refreshData();
+      } else {
+        alert('Failed to update profile. Check credentials.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error updating profile.');
     }
   };
 
@@ -645,15 +679,26 @@ function AdminProfile({ profile, refreshData, email, password }: any) {
         </div>
       </div>
 
+      {/* PROFILE PICTURE INPUTS (FILE UPLOAD + URL LINK SUPPORT) */}
       <div className="grid md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-bold text-slate-300 mb-2">Profile Picture URL (Facebook / External Link Supported)</label>
-          <input type="text" placeholder="https://scontent... or Facebook image address" className="w-full p-3.5 bg-slate-900 border border-slate-800 rounded-xl text-white font-medium" value={formData.profilePictureUrl} onChange={e => setFormData({...formData, profilePictureUrl: e.target.value})} />
+          <label className="block text-sm font-bold text-slate-300 mb-2">Upload Profile Picture (From Device)</label>
+          <input 
+            type="file" 
+            accept="image/*"
+            onChange={e => setSelectedFile(e.target.files ? e.target.files[0] : null)}
+            className="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white font-medium text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer" 
+          />
         </div>
         <div>
-          <label className="block text-sm font-bold text-slate-300 mb-2">CV / Resume Document URL</label>
-          <input type="text" placeholder="https://link-to-your-cv.pdf" className="w-full p-3.5 bg-slate-900 border border-slate-800 rounded-xl text-white font-medium" value={formData.cvUrl} onChange={e => setFormData({...formData, cvUrl: e.target.value})} />
+          <label className="block text-sm font-bold text-slate-300 mb-2">Or Profile Picture URL (External Link / Facebook)</label>
+          <input type="text" placeholder="https://scontent... or Facebook image address" className="w-full p-3.5 bg-slate-900 border border-slate-800 rounded-xl text-white font-medium" value={formData.profilePictureUrl} onChange={e => setFormData({...formData, profilePictureUrl: e.target.value})} />
         </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-bold text-slate-300 mb-2">CV / Resume Document URL</label>
+        <input type="text" placeholder="https://link-to-your-cv.pdf" className="w-full p-3.5 bg-slate-900 border border-slate-800 rounded-xl text-white font-medium" value={formData.cvUrl} onChange={e => setFormData({...formData, cvUrl: e.target.value})} />
       </div>
       
       <div className="border-t border-slate-800 pt-6 mt-6">
